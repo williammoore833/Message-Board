@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Board</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .form-section, .messages-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box; /* So padding doesn't affect width */
+            height: 100px;
+        }
+        button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #5cb85c;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Message Board</h1>
+        <div class="form-section">
+            <h2>Post a Message</h2>
+            <textarea id="messageContent"></textarea>
+            <button id="submitMessage">Submit</button>
+        </div>
+        <div class="messages-section">
+            <h2>Messages</h2>
+            <button id="refreshMessages">Refresh Messages</button>
+            <div id="messageDisplay"></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('submitMessage').addEventListener('click', postMessage);
+        document.getElementById('refreshMessages').addEventListener('click', getMessages);
+
+        const apiEndpoint = 'https://adyy6bp186.execute-api.us-east-1.amazonaws.com/prod';
+
+        async function postMessage() {
+            const messageContent = document.getElementById('messageContent').value;
+            try {
+                const response = await fetch(apiEndpoint + '/messages', {
+                    method: 'POST',
+                    body: JSON.stringify({ message: messageContent }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) throw new Error('Network response was not ok.');
+                const data = await response.json();
+                alert('Message posted successfully');
+                document.getElementById('messageContent').value = ''; // Clear the text area
+                getMessages(); // Refresh messages list
+            } catch (error) {
+                console.error('Error posting message:', error);
+                alert('Error posting message. See console for details.');
+            }
+        }
+
+        async function getMessages() {
+            try {
+                const response = await fetch(apiEndpoint + '/messages', { method: 'GET' });
+                if (!response.ok) throw new Error('Network response was not ok.');
+                const messages = await response.json();
+                const display = document.getElementById('messageDisplay');
+                display.innerHTML = ''; // Clear previous messages
+                messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.classList.add('message');
+                    div.textContent = msg.message;
+                    display.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error retrieving messages:', error);
+                alert('Error retrieving messages. See console for details.');
+            }
+        }
+    </script>
+</body>
+</html>
